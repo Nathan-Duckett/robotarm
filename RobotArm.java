@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.*;
 
 /**
  * Code for the SCARA robot arm for ENGR110
@@ -27,45 +28,51 @@ public class RobotArm {
 
     private void readPPM(String fileName) {
         currentImage = new ArrayList<Integer>();
-        Scanner sc = new Scanner(new File(fileName));
-        
-        if (!sc.next().equals("P2")) return;
+        Scanner sc;
+        try {
+            sc = new Scanner(new File(fileName));
 
-        currentImageCols = 0;
-        currentImageRows = 0;
-        int colorDepth = 255;
-        double colorScale = 1;
+            if (!sc.next().equals("P2")) return;
+
+            currentImageCols = 0;
+            currentImageRows = 0;
+            int colorDepth = 255;
+            double colorScale = 1;
+            
+            //Get the columns
+            try {
+                while (!sc.hasNextInt()) {
+                    sc.next();
+                }
+                currentImageCols = sc.nextInt();
+            } catch(InputMismatchException e) { System.out.println("Error: " + e); sc.nextLine(); }
+            //Get the rows
+            try  {
+                while (!sc.hasNextInt()) {
+                    sc.next();
+                }
+                currentImageRows = sc.nextInt();
+            } catch(InputMismatchException e) { System.out.println("Error: " + e); sc.nextLine(); };
+            //Get color depth
+            try {
+                while (!sc.hasNextInt()) {
+                    sc.next();
+                }
+                colorDepth = sc.nextInt();
+                colorScale = 255 / colorDepth;
+            } catch(InputMismatchException e) { System.out.println("Error: " + e); sc.nextLine(); };
+            
+            for (int i = 0; i < currentImageRows; i++) {
+                for (int j = 0; j < currentImageCols; j++){
+                    int colorValue = sc.nextInt();
+                    colorValue *= colorDepth;
+                    currentImage.add(colorValue);
+                }
+            }
+
+        } catch (IOException e) { System.out.println("Error loading the ppm"); }
         
-        //Get the columns
-        try {
-            while (!sc.hasNextInt()) {
-                sc.next();
-            }
-            currentImageCols = sc.nextInt();
-        } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); }
-        //Get the rows
-        try  {
-            while (!sc.hasNextInt()) {
-                sc.next();
-            }
-            currentImageRows = sc.nextInt();
-        } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); };
-        //Get color depth
-        try {
-            while (!sc.hasNextInt()) {
-                sc.next();
-            }
-            colordepth = sc.nextInt();
-            colorScale = 255 / colorDepth;
-        } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); };
         
-        for (int i = 0; i < currentImageRows; i++) {
-            for (int j = 0; j < currentImageCols; j++){
-                int colorValue = sc.next();
-                colorValue *= colorDepth;
-                currentImage.add(colorValue);
-            }
-        }
     }
 
     private void generateHorizontal() {
