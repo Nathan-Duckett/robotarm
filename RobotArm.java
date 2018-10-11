@@ -6,6 +6,8 @@ import java.io.*;
 public class RobotArm {
     private PrintStream output;
 
+    private ArrayList<Integer> currentImage;
+    private int currentImageRows, currentImageCols;
 
     public RobotArm () {
         try {
@@ -23,8 +25,47 @@ public class RobotArm {
         output.println("1500,1500, 1500");
     }
 
-    private void readPPM() {
+    private void readPPM(String fileName) {
+        currentImage = new ArrayList<Integer>();
+        Scanner sc = new Scanner(new File(fileName));
+        
+        if (!sc.next().equals("P2")) return;
 
+        currentImageCols = 0;
+        currentImageRows = 0;
+        int colorDepth = 255;
+        double colorScale = 1;
+        
+        //Get the columns
+        try {
+            while (!sc.hasNextInt()) {
+                sc.next();
+            }
+            currentImageCols = sc.nextInt();
+        } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); }
+        //Get the rows
+        try  {
+            while (!sc.hasNextInt()) {
+                sc.next();
+            }
+            currentImageRows = sc.nextInt();
+        } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); };
+        //Get color depth
+        try {
+            while (!sc.hasNextInt()) {
+                sc.next();
+            }
+            colordepth = sc.nextInt();
+            colorScale = 255 / colorDepth;
+        } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); };
+        
+        for (int i = 0; i < currentImageRows; i++) {
+            for (int j = 0; j < currentImageCols; j++){
+                int colorValue = sc.next();
+                colorValue *= colorDepth;
+                currentImage.add(colorValue);
+            }
+        }
     }
 
     private void generateHorizontal() {
