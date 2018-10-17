@@ -10,38 +10,39 @@ import java.awt.Color;
 public class ImageRenderer{
     public static final int TOP = 20;   // top edge of the image
     public static final int LEFT = 20;  // left edge of the image
-    public static final int PIXEL_SIZE = 2;  
+    public static final int PIXEL_SIZE = 2;
 
     private int [][] originalImage;     //A list to store the pixel values of the image
     private int rows = 0;
     private int cols = 0;
 
-    private int [][] applyKernalX= new int [][] {{-1,0,1},  
+    private int [][] applyKernalX= new int [][] {{-1,0,1},
             {-2,0,2},
             {-1,0,1}};
 
     private int [][] applyKernalY= new int [][] {{1,2,1},
             {0,0,0},
-            {-1,-2,-1}};  
+            {-1,-2,-1}};
 
     private int [][] edgeImageX;    //A list to store horizontal edges
     private int [][] edgeImageY;    //A list to stroe vertical edges
     private int [][] bwImage;    //A list to stroe vertical edges
 
     public ArrayList <Integer> xCoord = new ArrayList <Integer> ();
-    public ArrayList <Integer> yCoord = new ArrayList <Integer> (); 
-    public ArrayList <Integer> pen = new ArrayList <Integer> (); 
-    
+    public ArrayList <Integer> yCoord = new ArrayList <Integer> ();
+    public ArrayList <Integer> pen = new ArrayList <Integer> ();
+
     private boolean follow = false;
     private int color;
     private int count;
 
-    /** 
+    /**
      * Renders a ppm image file.
      * Asks for the name of the file, then calls scanImage.
      */
     public void renderImage(){
         String fileName  = UIFileChooser.open();
+        if (fileName == null) return;
         File myFile = new File(fileName);
         try {
             Scanner scan = new Scanner(myFile);
@@ -49,9 +50,9 @@ public class ImageRenderer{
         }
 
         catch(IOException e){UI.printf("File Failure %s \n", e);}
-    } 
+    }
 
-    /** 
+    /**
      * Renders a ppm image file.
      * The first four tokens are "P3", number of columns, number of rows, 255
      * The remaining tokens are the pixel values (red, green, blue for each pixel)
@@ -65,20 +66,20 @@ public class ImageRenderer{
             int cols = sc.nextInt();    //Number of cols
             int pixelValue = sc.nextInt();  //Bit depth
             originalImage = new int [rows][cols];//Init
-            //xyCoordinates=new HashSet<double>[rows*cols][rows*cols];  //Init 
+            //xyCoordinates=new HashSet<double>[rows*cols][rows*cols];  //Init
             if(format.equals("P3"))     {
                 col = 0;
                 while(col < cols){
                     row = 0;
                     while(row < rows){
-                        int r = sc.nextInt();  
+                        int r = sc.nextInt();
                         int g = sc.nextInt();
-                        int b = sc.nextInt(); 
-                        int avg = (r+g+b)/3;                   
-                        originalImage[row][col] = avg;                        
+                        int b = sc.nextInt();
+                        int avg = (r+g+b)/3;
+                        originalImage[row][col] = avg;
                         row++;
                     }
-                    col++;   
+                    col++;
                 }
             }
         }
@@ -86,7 +87,7 @@ public class ImageRenderer{
 
     }
 
-    /** 
+    /**
      * Perform 2D convolution using sobel kernels.
      */
     public void renderImage(int rows,int cols){
@@ -94,7 +95,7 @@ public class ImageRenderer{
         edgeImageX = new int [rows-2][cols-2];
         edgeImageY = new int [rows-2][cols-2];
         bwImage= new int [rows][cols];
-        for(int col = 0; col < cols-2; col++){            
+        for(int col = 0; col < cols-2; col++){
 
             for(int row = 0; row < rows-2; row++){
 
@@ -110,7 +111,7 @@ public class ImageRenderer{
 
                 double x = edgeImageX[row][col];//horizontal edges
                 double y = edgeImageY[row][col];//vertical edges
-                double a = Math.sqrt((x * x )+(y * y));//union vertical edges and horizontal edges               
+                double a = Math.sqrt((x * x )+(y * y));//union vertical edges and horizontal edges
 
                 //Draw the edges in white and the rest in black. The XY coord. of the white edges should be converted to motor signals
                 if (a >= 250){  //Reduce this value to increase the depth of the edges. But don't go below 200
@@ -133,7 +134,7 @@ public class ImageRenderer{
     public void Image3(int row, int col){
         follow = false;
         boolean completed = true;
-        for(int co = 0; co < col; co++){            
+        for(int co = 0; co < col; co++){
             for(int ro = 0; ro < row; ro++){
                 if(bwImage[ro][co] == 255){
                     completed = false;
@@ -183,7 +184,7 @@ public class ImageRenderer{
                 }
             }
         }
-        
+
         if(completed){
             for(int value : xCoord){
                 UI.println("comp x: "+value);
@@ -210,5 +211,15 @@ public class ImageRenderer{
         count = -2;
         return count;
     }
-}
 
+    public static void main(String[] args){
+        ImageRenderer ir = new ImageRenderer();
+        UI.initialise();
+        UI.addButton("Clear", UI::clearGraphics );
+        UI.addButton("Render ", ir::renderImage );
+
+        UI.addButton("Quit", UI::quit );
+        UI.setWindowSize(850, 700);
+        UI.setDivider(0.0);
+    }
+}

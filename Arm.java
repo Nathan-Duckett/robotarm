@@ -8,9 +8,9 @@ import java.awt.Color;
 public class Arm extends ImageRenderer{
 
     private ArrayList <Integer> xCo = new ArrayList <Integer> (xCoord);
-    private ArrayList <Integer> yCo = new ArrayList <Integer> (yCoord); 
-    private ArrayList <Integer> Pen = new ArrayList <Integer> (pen); 
-    
+    private ArrayList <Integer> yCo = new ArrayList <Integer> (yCoord);
+    private ArrayList <Integer> Pen = new ArrayList <Integer> (pen);
+
     private PrintStream output;
     private double previousX = 300;
     private double previousY = 100;
@@ -31,6 +31,13 @@ public class Arm extends ImageRenderer{
 
     public Arm(){
         UI.initialise();
+
+        try {
+            output = new PrintStream(new File("output.txt"));
+        } catch (FileNotFoundException e) {
+            UI.println("Error loading file");
+        }
+
         UI.addButton("Do it", this::calculate);
         UI.addButton("Quit", UI::quit);
     }
@@ -46,6 +53,8 @@ public class Arm extends ImageRenderer{
             int y2=yCo.get(i);
             Theta2 = Math.atan2(y2-ym2,x2-xm2);
         }
+        moveToPoint(310, 100);
+        convertToSignals();
     }
 
     /**
@@ -53,7 +62,7 @@ public class Arm extends ImageRenderer{
      * Converts to commands which are stored in the list
      */
     private void moveToPoint(double x, double y) {
-        System.out.println("Moving to point");
+        UI.println("Moving to point");
         double d = Math.sqrt((Math.pow(x - previousX, 2) + (Math.pow(y - previousY, 2))));
 
         if (d > 2 * radiusSize) {
@@ -73,20 +82,18 @@ public class Arm extends ImageRenderer{
         double x4 = xA - h * sinAngle;
         double y4 = yA + h * cosAngle;
 
-        int origin = 1500;
-
         //Angles are measured in radians
-        double angleLeft = Math.atan2(y3, x3 - origin);
-        double angleRight = Math.atan2(y4, origin - x4);
+        double angleLeft = Math.atan2(y3 - ym1, x3 - xm1);
+        double angleRight = Math.atan2(y4 - ym2, xm2 - x4);
 
         commands.add(angleLeft);
         commands.add(angleRight);
         commands.add(1600.0);
 
         //For debugging in the simulator
-        System.out.println(Math.toDegrees(angleLeft));
-        System.out.println(Math.toDegrees(angleRight));
-        
+        //UI.println(Math.toDegrees(angleLeft));
+        //UI.println(Math.toDegrees(angleRight));
+
         previousX = x;
         previousY = y;
     }
@@ -97,7 +104,7 @@ public class Arm extends ImageRenderer{
             double right = (commands.get(i + 1) * Math.PI * 500) / 2;
             double pen = commands.get(i + 2);
             output.printf("%f,%f,%f\n", left, right, pen);
-            System.out.printf("%f,%f,%f\n", left, right, pen);
+            UI.printf("%f,%f,%f\n", left, right, pen);
         }
         output.close();
     }
