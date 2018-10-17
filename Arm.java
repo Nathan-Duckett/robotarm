@@ -1,3 +1,9 @@
+/* 
+ * Name:
+ * ID:
+ */
+
+
 import ecs100.*;
 import java.util.*;
 import java.io.*;
@@ -5,113 +11,120 @@ import java.awt.Color;
 
 /** <description of class Arm>
  */
-public class Arm extends ImageRenderer{
+public class Arm{
 
-    private ArrayList <Integer> xCo = new ArrayList <Integer> (xCoord);
-    private ArrayList <Integer> yCo = new ArrayList <Integer> (yCoord);
-    private ArrayList <Integer> Pen = new ArrayList <Integer> (pen);
-
-    private PrintStream output;
-    private double previousX = 300;
-    private double previousY = 100;
-
-    private double initialAngleLeft = 1500;
-    private double initialAngleRight = 1500;
-
-    private static final double radiusSize = 1500;
-    private ArrayList<Double> commands = new ArrayList<Double>();
-
-
-    private double Theta1;
-    private double Theta2;
-    private double xm1=300;
-    private double ym1=480;
-    private double xm2=340;
-    private double ym2=480;
-
+    private ArrayList <Integer> xCo;
+    private ArrayList <Integer> yCo; 
+    private ArrayList <Integer> Pen; 
+    
+    private double d,xT,yT,xm1,ym1,xm2,ym2,xA,yA,R,H,SinTheta,CosTheta,x3,y3,x4,y4,leftMotorAngle,rightMotorAngle,penAngle=1500;
+    
+    private PrintStream write;
+    
+    ImageRenderer img = new ImageRenderer ();
+    
     public Arm(){
         UI.initialise();
-
-        try {
-            output = new PrintStream(new File("output.txt"));
-        } catch (FileNotFoundException e) {
-            UI.println("Error loading file");
-        }
-
-        UI.addButton("Do it", this::calculate);
+        UI.addButton("Do it", this::Calculate);
         UI.addButton("Quit", UI::quit);
     }
+    
+    public void initLists(){
+        xCo = new ArrayList<Integer>(img.getX());
+        yCo = new ArrayList<Integer>(img.getY());
+        Pen = new ArrayList<Integer>(img.getPen());
+    }
 
-    public void calculate(){
+    public void Calculate(){
+        xm1=302;
+        ym1=198;
+        xm2=517;
+        ym2=202;
+        R=290;
+        initWriter();
         for(int i=0; i<xCo.size();i++){
-            int x1=xCo.get(i);
-            int y1=yCo.get(i);
-            Theta1 = Math.atan2(y1-ym1,x1-xm1);
+            xT = xCo.get(i);
+            yT = yCo.get(i);
+            
+            /** Motor 1**/
+            //Distance betwee tool and motor:
+            d= Math.sqrt( ((xT-xm2)*(xT-xm2)) + ((yT-ym2)*(yT-ym2)) );
+            
+            //Midpoint
+            xA = (xT+xm2)/2;
+            yA = (yT+ym2)/2;
+            
+            //Distance between midpoint and joints:
+            H= Math.sqrt((R*R)-((d/2)*(d/2)));
+            
+            //Angles
+            CosTheta = (xT-xm1)/d;
+            SinTheta = (yT-ym1)/d;
+            
+            //Joint positions:
+            x3 = xA + H*SinTheta;
+            y3 = yA - H*CosTheta;
+            x4 = xA - H*SinTheta;
+            y4 = yA + H*CosTheta;
+            
+            //Choose the lower x value for left motor and calculate angle
+            if(x3<x4){leftMotorAngle = Math.atan2(ym1-y3,x3-xm1);}
+            else{leftMotorAngle = Math.atan2(ym1-y4,x4-xm1);}
+            
+            
+            /** Motor 2**/
+            //Distance betwee tool and motor:
+            d= Math.sqrt( ((xT-xm1)*(xT-xm1)) + ((yT-ym1)*(yT-ym1)) );
+            
+            //Midpoint
+            xA = (xT+xm1)/2;
+            yA = (yT+ym1)/2;
+            
+            //Distance between midpoint and joints:
+            H= Math.sqrt((R*R)-((d/2)*(d/2)));
+            
+            //Angles
+            CosTheta = (xT-xm2)/d;
+            SinTheta = (yT-ym2)/d;
+            
+            //Joint positions:
+            x3 = xA + H*SinTheta;
+            y3 = yA - H*CosTheta;
+            x4 = xA - H*SinTheta;
+            y4 = yA + H*CosTheta;
+            
+            //Choose the higher x value for right motor and calculate angle
+            if(x3>x4){rightMotorAngle = Math.atan2(ym2-y3,x3-xm2);}
+            else{rightMotorAngle = Math.atan2(ym2-y4,x4-xm2);}
+            
+            writeMotorSignals(leftMotorAngle, rightMotorAngle, penAngle);
         }
-        for(int i=0; i<xCo.size();i++){
-            int x2=xCo.get(i);
-            int y2=yCo.get(i);
-            Theta2 = Math.atan2(y2-ym2,x2-xm2);
-        }
-        moveToPoint(310, 100);
-        convertToSignals();
+        
     }
 
-    /**
-     * Move the pen from the current position to a new x, y position
-     * Converts to commands which are stored in the list
-     */
-    private void moveToPoint(double x, double y) {
-        UI.println("Moving to point");
-        double d = Math.sqrt((Math.pow(x - previousX, 2) + (Math.pow(y - previousY, 2))));
-
-        if (d > 2 * radiusSize) {
-            return;
+    public void initWriter(){
+        try{
+            write = new PrintStream (new File("image.txt"));
+            UI.println("File Created\n\n");
+            //UI.println(xCo.size()+yCo.size()+Pen.size());
         }
-
-        double xA = (previousX + x) / 2;
-        double yA = (previousY + y) / 2;
-
-        double h = Math.sqrt(Math.pow(radiusSize, 2) - Math.pow((d / 2), 2));
-
-        double cosAngle = Math.cos((x - previousX) / d);
-        double sinAngle = Math.sin((y - previousY) / d);
-
-        double x3 = xA + h * sinAngle;
-        double y3 = yA - h * cosAngle;
-        double x4 = xA - h * sinAngle;
-        double y4 = yA + h * cosAngle;
-
-        //Angles are measured in radians
-        double angleLeft = Math.atan2(y3 - ym1, x3 - xm1);
-        double angleRight = Math.atan2(y4 - ym2, xm2 - x4);
-
-        commands.add(angleLeft);
-        commands.add(angleRight);
-        commands.add(1600.0);
-
-        //For debugging in the simulator
-        //UI.println(Math.toDegrees(angleLeft));
-        //UI.println(Math.toDegrees(angleRight));
-
-        previousX = x;
-        previousY = y;
+        catch(IOException e){
+              
+        } 
     }
 
-    private void convertToSignals() {
-        for (int i = 0; i < commands.size() / 3; i += 3){
-            double left = (commands.get(i) * Math.PI * 500) / 2;
-            double right = (commands.get(i + 1) * Math.PI * 500) / 2;
-            double pen = commands.get(i + 2);
-            output.printf("%f,%f,%f\n", left, right, pen);
-            UI.printf("%f,%f,%f\n", left, right, pen);
-        }
-        output.close();
+    public void writeMotorSignals(double left, double right, double pen){
+        UI.println(left+","+right+","+pen);  
+        //write.flush();
     }
-
-
+    
     public static void main(String[] args){
         Arm obj = new Arm();
+        ImageRenderer ir = new ImageRenderer();
+        ir.renderImage();
+        obj.initLists();
+        obj.initWriter();
+        obj.Calculate();
     }
 
 }
