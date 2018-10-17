@@ -21,7 +21,7 @@ public class Arm{
     
     private PrintStream write;
     
-    ImageRenderer img = new ImageRenderer ();
+    public ImageRenderer img = new ImageRenderer ();
     
     public Arm(){
         UI.initialise();
@@ -30,9 +30,13 @@ public class Arm{
     }
     
     public void initLists(){
-        xCo = new ArrayList<Integer>(img.getX());
-        yCo = new ArrayList<Integer>(img.getY());
-        Pen = new ArrayList<Integer>(img.getPen());
+        xCo = img.xCoord;
+        yCo = img.yCoord;
+        Pen = img.pen;
+
+        UI.println(img.xCoord.size());
+        UI.println(yCo.size());
+        UI.println(Pen.size());
     }
 
     public void Calculate(){
@@ -109,22 +113,26 @@ public class Arm{
             //UI.println(xCo.size()+yCo.size()+Pen.size());
         }
         catch(IOException e){
-              
+            UI.println("Error opening the file: " + e);
         } 
     }
 
     public void writeMotorSignals(double left, double right, double pen){
-        UI.println(left+","+right+","+pen);  
-        //write.flush();
+        //write.println(left+","+right+","+pen);  
+        write.printf("%f,%f,%f\n", left, right, pen);
+    }
+
+    public void closeWriter() {
+        write.close();
     }
     
     public static void main(String[] args){
         Arm obj = new Arm();
-        ImageRenderer ir = new ImageRenderer();
-        ir.renderImage();
+        obj.img.renderImage();
         obj.initLists();
         obj.initWriter();
         obj.Calculate();
+        obj.closeWriter();
     }
 
 }
