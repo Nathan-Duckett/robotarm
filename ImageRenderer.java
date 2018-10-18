@@ -47,11 +47,21 @@ public class ImageRenderer{
         try {
             String fileName  = UIFileChooser.open();
             if (fileName == null) return;
-            File myFile = new File(fileName);
-            Scanner scan = new Scanner(myFile);
+            Scanner scan = new Scanner(new File(fileName));
             this.scanImage(scan);
         } catch(IOException e) { UI.printf("File Failure %s \n", e); }
-    } 
+    }
+    
+    /**
+     * Take a fileName and perform the image scanning into the 
+     */
+    public void renderDirectly(String fileName) {
+        try {
+            if (fileName == null) return;
+            Scanner scan = new Scanner(new File(fileName));
+            this.scanImage(scan);
+        } catch(IOException e) { UI.printf("File Failure %s \n", e); }
+    }
 
     /** 
      * Renders a ppm image file.
@@ -148,7 +158,7 @@ public class ImageRenderer{
                 }
                 bwImage[row][col]=color;
             }
-            UI.printf("\n");
+            //UI.printf("\n");
         }
         Image3(rows,cols);
     }
@@ -164,9 +174,9 @@ public class ImageRenderer{
                     pen.add(0);
                     while(follow){
                         xCoord.add(ro);
-                        UI.println("x: "+ro);
+                        Trace.println("x: "+ro);
                         yCoord.add(co);
-                        UI.println("y: "+co);
+                        Trace.println("y: "+co);
                         pen.add(1);
                         bwImage[ro][co] = 0;
                         checkNeigh(ro,co);
@@ -209,10 +219,10 @@ public class ImageRenderer{
         
         if(completed){
             for(int value : xCoord){
-                UI.println("comp x: "+value);
+                Trace.println("comp x: "+value);
             }
             for(int value : yCoord){
-                UI.println("comp y: "+value);
+                Trace.println("comp y: "+value);
             }
         }
     }
@@ -223,9 +233,9 @@ public class ImageRenderer{
         for(int i = -1; i < 2; i++){
             for(int j = -1; j < 2; j++){
                 count++;
-                UI.println("count: "+count);
+                Trace.println("count: "+count);
                 if(bwImage[row + i][col + j] == max){
-                    UI.println("count: "+count);
+                    Trace.println("count: "+count);
                     return count;
                 }
             }

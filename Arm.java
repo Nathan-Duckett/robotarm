@@ -25,26 +25,47 @@ public class Arm{
     
     public Arm(){
         img = new ImageRenderer();
-        UI.initialise();
-        UI.addButton("Load Image", img::renderImage);
-        UI.addButton("Print to File", this::Calculate);
-        UI.addButton("Quit", UI::quit);
-    }
-    
-    public void initLists(){
-        xCo = img.getX();
-        yCo = img.getY();
-        Pen = img.getPen();
-    }
-
-    public void Calculate(){
         xm1=240;
         ym1=449;
         xm2=389;
         ym2=449;
         R=290;
-        initWriter();
+        
+        UI.initialise();
+        UI.addButton("Load Image (choose)", img::renderImage);
+        UI.addButton("Load Vertical Image", () -> {img.renderDirectly("vertical-line.ppm"); });
+        UI.addButton("Load Horizontal Image", () -> {img.renderDirectly("horizontal-line.ppm"); });
+        UI.addButton("Clear Current Image", this::clear);
+        UI.addTextField("Left motor x", (String v) -> { xm1 = new Double(v); });
+        UI.addTextField("Left motor y", (String v) -> { ym1 = new Double(v); });
+        UI.addTextField("Right motor x", (String v) -> { xm2 = new Double(v); });
+        UI.addTextField("Right motor y", (String v) -> { ym2 = new Double(v); });
+        UI.addButton("Check motor positions", this::showMotorPositions);
+        UI.addButton("Print Signals to File", this::Calculate);
+        
+        UI.addButton("Quit", UI::quit);
+        UI.setDivider(0.4);
+        UI.setWindowSize(1200, 800);
+    }
+    
+    /**
+     * Calculates the angles required for each motor to move the pen to all x and y positions
+     * in the co-ordinate lists
+     */
+    public void Calculate(){
         initLists();
+        if (xCo.isEmpty() && yCo.isEmpty() && Pen.isEmpty()) {
+            UI.println("You have not loaded an image yet.");
+            UI.println("Click Load Image first before trying to print ");
+        }
+        
+        if (xCo.size() != yCo.size() && xCo.size() != Pen.size() && yCo.size() != Pen.size()) {
+            UI.println("An error occurred where the co-ordinate inputs do not add up");
+            UI.println("Please load the image, and try again");
+        }
+        
+        initWriter();
+        
         for(int i=0; i<xCo.size();i++){
             xT = xCo.get(i);
             yT = yCo.get(i);
@@ -105,27 +126,63 @@ public class Arm{
         write.close();
     }
 
+    /**
+     * Initializes a new Writer to output to the file
+     */
     public void initWriter(){
         try{
             write = new PrintStream (new File("image.txt"));
-            UI.println("File Created\n\n");
+            UI.println("Command File Created\n\n");
             //UI.println(xCo.size()+yCo.size()+Pen.size());
         }
         catch(IOException e){
             UI.println("Error opening the file: " + e);
         } 
     }
+    
+    /**
+     * Initializes the x, y and pen lists with the co-ordinates retrieved after rendering an image
+     */
+    public void initLists(){
+        xCo = img.getX();
+        yCo = img.getY();
+        Pen = img.getPen();
+    }
+    
+    private void clear() {
+        xCo = new ArrayList<Integer>();
+        yCo = new ArrayList<Integer>();
+        Pen = new ArrayList<Integer>();
+        img = new ImageRenderer();
+        UI.clearPanes();
+    }
 
-    public void writeMotorSignals(double left, double right, double pen){
-        //write.println(left+","+right+","+pen);
-        //left = Math.abs(Math.toDegrees(left));
-        //right = Math.abs(Math.toDegrees(right));
+    /**
+     * Take an angle (in radians) and calculate the motor signal which is required to move to
+     * the new angle positions.
+     */
+    public void writeMotorSignals(double left, double right, double pen){       
+        //Convert from radians to degrees
         left = Math.abs(left * 180.0/Math.PI);
         right = Math.abs(right * 180.0/Math.PI);
-        UI.println(left + "  " + right);
+        Trace.println(left + "  " + right);     //Debugging purposes
+        
+        //Apply the straight line formula to calculate the motor signal
         left = left * (500.0/ 90.0) + 1000;
         right = right * (500.0/ 90.0) + 1000;
+        
+        //Print the signals with no decimal places
         write.printf("%.0f,%.0f,%.0f\n", left, right, pen);
+    }
+    
+    /**
+     * Print out the current co-ordinates of the two motors for the arm
+     */
+    private void showMotorPositions() {
+        UI.println("---- Current Motor Positions ----");
+        UI.printf("Left: (%.1f,%.1f)\n", xm1, ym1);
+        UI.printf("Right: (%.1f,%.1f)\n", xm2, ym2);
+        UI.println("---------------------------------");
     }
     
     public static void main(String[] args){
