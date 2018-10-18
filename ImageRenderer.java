@@ -1,26 +1,15 @@
-// This program is copyright VUW.
-// You are granted permission to use it to construct your answer to a COMP102 assignment.
-// You may not distribute it in any other way without permission.
-
-/* Code for COMP102 - 2018T1
- * Name: 
- * Username:
- * ID:
- */
-
 import ecs100.*;
 import java.util.*;
 import java.io.*;
 import java.awt.Color;
 
-/** Renders plain ppm images onto the graphics panel
- *  ppm images are the simplest possible colour image format.
+/**
+ * Take a PPM image and find the edges storing them into an array to be used in the Arm signals
  */
-
 public class ImageRenderer{
-    public static final int TOP = 20;   // top edge of the image
-    public static final int LEFT = 20;  // left edge of the image
-    public static final int PIXEL_SIZE = 2;  
+    private static final int TOP = 20;   // top edge of the image
+    private static final int LEFT = 20;  // left edge of the image
+    private static final int PIXEL_SIZE = 2;  
 
     private int [][] originalImage;     //A list to store the pixel values of the image
     private int rows = 0;
@@ -38,9 +27,9 @@ public class ImageRenderer{
     private int [][] edgeImageY;    //A list to stroe vertical edges
     private int [][] bwImage;    //A list to stroe vertical edges
 
-    public ArrayList <Integer> xCoord = new ArrayList <Integer> ();
-    public ArrayList <Integer> yCoord = new ArrayList <Integer> (); 
-    public ArrayList <Integer> pen = new ArrayList <Integer> (); 
+    private ArrayList <Integer> xCoord = new ArrayList <Integer> ();
+    private ArrayList <Integer> yCoord = new ArrayList <Integer> (); 
+    private ArrayList <Integer> pen = new ArrayList <Integer> (); 
     
     private boolean follow = false;
     private int color;
@@ -55,14 +44,13 @@ public class ImageRenderer{
      * Asks for the name of the file, then calls scanImage.
      */
     public void renderImage(){
-        String fileName  = UIFileChooser.open();
-        File myFile = new File(fileName);
         try {
+            String fileName  = UIFileChooser.open();
+            if (fileName == null) return;
+            File myFile = new File(fileName);
             Scanner scan = new Scanner(myFile);
             this.scanImage(scan);
-        }
-
-        catch(IOException e){UI.printf("File Failure %s \n", e);}
+        } catch(IOException e) { UI.printf("File Failure %s \n", e); }
     } 
 
     /** 
@@ -73,7 +61,8 @@ public class ImageRenderer{
     public void scanImage(Scanner sc){
         int row = 0;
         int col = 0;
-
+        if (!sc.hasNext()) return;
+        
         String format = sc.next();
         while(sc.hasNext()) {
             if (sc.hasNext("#")) {
@@ -91,7 +80,7 @@ public class ImageRenderer{
         } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); };
 
         //Get the rows
-        try  {
+        try {
             while (!sc.hasNextInt()) {
                 sc.next();
             }
@@ -101,7 +90,7 @@ public class ImageRenderer{
 
         originalImage = new int [rows][cols];//Init
         //xyCoordinates=new HashSet<double>[rows*cols][rows*cols];  //Init 
-        if(format.equals("P3"))     {
+        if(format.equals("P3")) {
             row = 0;
             while(row < rows){
                 col = 0;
@@ -116,21 +105,6 @@ public class ImageRenderer{
                 row++;   
             }
         }
-        // if(format.equals("P3")) {
-        //     col = 0;
-        //     while(col < cols){
-        //         row = 0;
-        //         while(row < rows){
-        //             int r = sc.nextInt();  
-        //             int g = sc.nextInt();
-        //             int b = sc.nextInt(); 
-        //             int avg = (r+g+b)/3;                   
-        //             originalImage[row][col] = avg;                        
-        //             row++;
-        //         }
-        //         col++;   
-        //     }
-        // }
         renderImage(row, col);
 
     }

@@ -21,22 +21,20 @@ public class Arm{
     
     private PrintStream write;
     
-    public ImageRenderer img = new ImageRenderer();
+    public ImageRenderer img;
     
     public Arm(){
+        img = new ImageRenderer();
         UI.initialise();
-        UI.addButton("Do it", this::Calculate);
+        UI.addButton("Load Image", img::renderImage);
+        UI.addButton("Print to File", this::Calculate);
         UI.addButton("Quit", UI::quit);
     }
     
     public void initLists(){
-        xCo = img.xCoord;
-        yCo = img.yCoord;
-        Pen = img.pen;
-
-        UI.println(img.xCoord.size());
-        UI.println(yCo.size());
-        UI.println(Pen.size());
+        xCo = img.getX();
+        yCo = img.getY();
+        Pen = img.getPen();
     }
 
     public void Calculate(){
@@ -46,6 +44,7 @@ public class Arm{
         ym2=449;
         R=290;
         initWriter();
+        initLists();
         for(int i=0; i<xCo.size();i++){
             xT = xCo.get(i);
             yT = yCo.get(i);
@@ -72,8 +71,8 @@ public class Arm{
             y4 = yA + H*CosTheta;
             
             //Choose the lower x value for left motor and calculate angle
-            if(x3<x4){leftMotorAngle = Math.PI/2 - Math.atan2(ym1-y3,x3-xm1);}
-            else{leftMotorAngle = Math.PI/2 - Math.atan2(ym1-y4,x4-xm1);}
+            if(x3<x4){leftMotorAngle = Math.atan2(ym1-y3,x3-xm1);}
+            else{leftMotorAngle = Math.atan2(ym1-y4,x4-xm1);}
             
             
             /** Motor 2**/
@@ -98,12 +97,12 @@ public class Arm{
             y4 = yA + H*CosTheta;
             
             //Choose the higher x value for right motor and calculate angle
-            if(x3>x4){rightMotorAngle = Math.PI/2 - Math.atan2(ym2-y3,xm2-x3);}
-            else{rightMotorAngle = Math.PI/2 - Math.atan2(ym2-y4,xm2-x4);}
+            if(x3>x4){rightMotorAngle = Math.atan2(ym2-y3,xm2-x3);}
+            else{rightMotorAngle = Math.atan2(ym2-y4,xm2-x4);}
             
             writeMotorSignals(leftMotorAngle, rightMotorAngle, penAngle);
         }
-        
+        write.close();
     }
 
     public void initWriter(){
@@ -128,17 +127,9 @@ public class Arm{
         right = right * (500.0/ 90.0) + 1000;
         write.printf("%.0f,%.0f,%.0f\n", left, right, pen);
     }
-
-    public void closeWriter() {
-        write.close();
-    }
     
     public static void main(String[] args){
         Arm obj = new Arm();
-        obj.img.renderImage();
-        obj.initLists();
-        obj.Calculate();
-        obj.closeWriter();
     }
 
 }
