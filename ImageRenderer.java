@@ -73,29 +73,64 @@ public class ImageRenderer{
     public void scanImage(Scanner sc){
         int row = 0;
         int col = 0;
-        while (sc.hasNext()){
-            String format = sc.next();
-            int rows = sc.nextInt();    //Number of rows
-            int cols = sc.nextInt();    //Number of cols
-            int pixelValue = sc.nextInt();  //Bit depth
-            originalImage = new int [rows][cols];//Init
-            //xyCoordinates=new HashSet<double>[rows*cols][rows*cols];  //Init 
-            if(format.equals("P3"))     {
-                col = 0;
-                while(col < cols){
-                    row = 0;
-                    while(row < rows){
-                        int r = sc.nextInt();  
-                        int g = sc.nextInt();
-                        int b = sc.nextInt(); 
-                        int avg = (r+g+b)/3;                   
-                        originalImage[row][col] = avg;                        
-                        row++;
-                    }
-                    col++;   
-                }
+
+        String format = sc.next();
+        while(sc.hasNext()) {
+            if (sc.hasNext("#")) {
+                sc.nextLine();
+            } else {
+                break;
             }
         }
+        //Get the columns
+        try {
+            while (!sc.hasNextInt()) {
+                sc.next();
+            }
+            cols = sc.nextInt();
+        } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); };
+
+        //Get the rows
+        try  {
+            while (!sc.hasNextInt()) {
+                sc.next();
+            }
+            rows = sc.nextInt();
+        } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); };
+
+
+        originalImage = new int [rows][cols];//Init
+        //xyCoordinates=new HashSet<double>[rows*cols][rows*cols];  //Init 
+        if(format.equals("P3"))     {
+            row = 0;
+            while(row < rows){
+                col = 0;
+                while(col < cols){
+                    int r = sc.nextInt();  
+                    int g = sc.nextInt();
+                    int b = sc.nextInt(); 
+                    int avg = (r+g+b)/3;                   
+                    originalImage[row][col] = avg;                        
+                    col++;
+                }
+                row++;   
+            }
+        }
+        // if(format.equals("P3")) {
+        //     col = 0;
+        //     while(col < cols){
+        //         row = 0;
+        //         while(row < rows){
+        //             int r = sc.nextInt();  
+        //             int g = sc.nextInt();
+        //             int b = sc.nextInt(); 
+        //             int avg = (r+g+b)/3;                   
+        //             originalImage[row][col] = avg;                        
+        //             row++;
+        //         }
+        //         col++;   
+        //     }
+        // }
         renderImage(row, col);
 
     }

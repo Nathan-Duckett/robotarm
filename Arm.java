@@ -21,7 +21,7 @@ public class Arm{
     
     private PrintStream write;
     
-    public ImageRenderer img = new ImageRenderer ();
+    public ImageRenderer img = new ImageRenderer();
     
     public Arm(){
         UI.initialise();
@@ -40,10 +40,10 @@ public class Arm{
     }
 
     public void Calculate(){
-        xm1=302;
-        ym1=198;
-        xm2=517;
-        ym2=202;
+        xm1=240;
+        ym1=449;
+        xm2=389;
+        ym2=449;
         R=290;
         initWriter();
         for(int i=0; i<xCo.size();i++){
@@ -51,32 +51,6 @@ public class Arm{
             yT = yCo.get(i);
             
             /** Motor 1**/
-            //Distance betwee tool and motor:
-            d= Math.sqrt( ((xT-xm2)*(xT-xm2)) + ((yT-ym2)*(yT-ym2)) );
-            
-            //Midpoint
-            xA = (xT+xm2)/2;
-            yA = (yT+ym2)/2;
-            
-            //Distance between midpoint and joints:
-            H= Math.sqrt((R*R)-((d/2)*(d/2)));
-            
-            //Angles
-            CosTheta = (xT-xm1)/d;
-            SinTheta = (yT-ym1)/d;
-            
-            //Joint positions:
-            x3 = xA + H*SinTheta;
-            y3 = yA - H*CosTheta;
-            x4 = xA - H*SinTheta;
-            y4 = yA + H*CosTheta;
-            
-            //Choose the lower x value for left motor and calculate angle
-            if(x3<x4){leftMotorAngle = Math.atan2(ym1-y3,x3-xm1);}
-            else{leftMotorAngle = Math.atan2(ym1-y4,x4-xm1);}
-            
-            
-            /** Motor 2**/
             //Distance betwee tool and motor:
             d= Math.sqrt( ((xT-xm1)*(xT-xm1)) + ((yT-ym1)*(yT-ym1)) );
             
@@ -88,8 +62,34 @@ public class Arm{
             H= Math.sqrt((R*R)-((d/2)*(d/2)));
             
             //Angles
-            CosTheta = (xT-xm2)/d;
-            SinTheta = (yT-ym2)/d;
+            CosTheta = Math.cos((xT-xm1)/d);
+            SinTheta = Math.sin((yT-ym1)/d);
+            
+            //Joint positions:
+            x3 = xA + H*SinTheta;
+            y3 = yA - H*CosTheta;
+            x4 = xA - H*SinTheta;
+            y4 = yA + H*CosTheta;
+            
+            //Choose the lower x value for left motor and calculate angle
+            if(x3<x4){leftMotorAngle = Math.PI/2 - Math.atan2(ym1-y3,x3-xm1);}
+            else{leftMotorAngle = Math.PI/2 - Math.atan2(ym1-y4,x4-xm1);}
+            
+            
+            /** Motor 2**/
+            //Distance betwee tool and motor:
+            d= Math.sqrt( ((xT-xm2)*(xT-xm2)) + ((yT-ym2)*(yT-ym2)) );
+            
+            //Midpoint
+            xA = (xT+xm2)/2;
+            yA = (yT+ym2)/2;
+            
+            //Distance between midpoint and joints:
+            H= Math.sqrt((R*R)-((d/2)*(d/2)));
+            
+            //Angles
+            CosTheta = Math.cos((xT-xm2)/d);
+            SinTheta = Math.sin((yT-ym2)/d);
             
             //Joint positions:
             x3 = xA + H*SinTheta;
@@ -98,8 +98,8 @@ public class Arm{
             y4 = yA + H*CosTheta;
             
             //Choose the higher x value for right motor and calculate angle
-            if(x3>x4){rightMotorAngle = Math.atan2(ym2-y3,x3-xm2);}
-            else{rightMotorAngle = Math.atan2(ym2-y4,x4-xm2);}
+            if(x3>x4){rightMotorAngle = Math.PI/2 - Math.atan2(ym2-y3,xm2-x3);}
+            else{rightMotorAngle = Math.PI/2 - Math.atan2(ym2-y4,xm2-x4);}
             
             writeMotorSignals(leftMotorAngle, rightMotorAngle, penAngle);
         }
@@ -118,8 +118,15 @@ public class Arm{
     }
 
     public void writeMotorSignals(double left, double right, double pen){
-        //write.println(left+","+right+","+pen);  
-        write.printf("%f,%f,%f\n", left, right, pen);
+        //write.println(left+","+right+","+pen);
+        //left = Math.abs(Math.toDegrees(left));
+        //right = Math.abs(Math.toDegrees(right));
+        left = Math.abs(left * 180.0/Math.PI);
+        right = Math.abs(right * 180.0/Math.PI);
+        UI.println(left + "  " + right);
+        left = left * (500.0/ 90.0) + 1000;
+        right = right * (500.0/ 90.0) + 1000;
+        write.printf("%.0f,%.0f,%.0f\n", left, right, pen);
     }
 
     public void closeWriter() {
@@ -130,7 +137,6 @@ public class Arm{
         Arm obj = new Arm();
         obj.img.renderImage();
         obj.initLists();
-        obj.initWriter();
         obj.Calculate();
         obj.closeWriter();
     }
