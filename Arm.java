@@ -147,6 +147,7 @@ public class Arm{
         Pen = img.getPen();
     }
     
+    /** Clear the screen and images */
     private void clear() {
         xCo = new ArrayList<Integer>();
         yCo = new ArrayList<Integer>();
@@ -187,8 +188,6 @@ public class Arm{
     
     public static void main(String[] args){
         Arm obj = new Arm();
-        obj.initWriter();
-        obj.writeMotorSignals(Math.toRadians(135), Math.toRadians(27.9), 1500);
     }
 
 }

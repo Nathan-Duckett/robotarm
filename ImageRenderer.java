@@ -115,24 +115,6 @@ public class ImageRenderer{
                 row++;   
             }
         }
-
-        /*
-        if(format.equals("P3")) {
-        col = cols - 1;
-        while(col >= 0){
-        row = 0;
-        while(row < rows){
-        int r = sc.nextInt();  
-        int g = sc.nextInt();
-        int b = sc.nextInt(); 
-        int avg = (r+g+b)/3;                   
-        originalImage[row][col] = avg;                        
-        row++;
-        }
-        col--;   
-        }
-        }
-         */
         renderImage(row, col);
 
     }
