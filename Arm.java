@@ -1,9 +1,3 @@
-/* 
- * Name:
- * ID:
- */
-
-
 import ecs100.*;
 import java.util.*;
 import java.io.*;
@@ -17,7 +11,7 @@ public class Arm{
     private ArrayList <Integer> yCo; 
     private ArrayList <Integer> Pen; 
     
-    private double d,xT,yT,xm1,ym1,xm2,ym2,xA,yA,R,H,SinTheta,CosTheta,x3,y3,x4,y4,leftMotorAngle,rightMotorAngle,penAngle=1500;
+    private double d,xT,yT,xm1,ym1,xm2,ym2, alpha, xA,yA,R,H,SinTheta,CosTheta,x3,y3,x4,y4,leftMotorAngle,rightMotorAngle,penAngle=1500;
     
     private PrintStream write;
     
@@ -25,10 +19,10 @@ public class Arm{
     
     public Arm(){
         img = new ImageRenderer();
-        xm1=240;
-        ym1=449;
-        xm2=389;
-        ym2=449;
+        xm1=233;
+        ym1=478;
+        xm2=366;
+        ym2=478;
         R=290;
         
         UI.initialise();
@@ -57,11 +51,13 @@ public class Arm{
         if (xCo.isEmpty() && yCo.isEmpty() && Pen.isEmpty()) {
             UI.println("You have not loaded an image yet.");
             UI.println("Click Load Image first before trying to print ");
+            return;
         }
         
         if (xCo.size() != yCo.size() && xCo.size() != Pen.size() && yCo.size() != Pen.size()) {
             UI.println("An error occurred where the co-ordinate inputs do not add up");
             UI.println("Please load the image, and try again");
+            return;
         }
         
         initWriter();
@@ -72,8 +68,9 @@ public class Arm{
             
             /** Motor 1**/
             //Distance betwee tool and motor:
-            d= Math.sqrt( ((xT-xm1)*(xT-xm1)) + ((yT-ym1)*(yT-ym1)) );
+            d= Math.sqrt( ((xT-xm1)*(xT-xm1)) + ((yT-ym1)*(yT-ym1)));
             
+            alpha = Math.atan2(yT - ym1, xT - xm1);
             //Midpoint
             xA = (xT+xm1)/2;
             yA = (yT+ym1)/2;
@@ -82,8 +79,8 @@ public class Arm{
             H= Math.sqrt((R*R)-((d/2)*(d/2)));
             
             //Angles
-            CosTheta = Math.cos((xT-xm1)/d);
-            SinTheta = Math.sin((yT-ym1)/d);
+            CosTheta = Math.cos(alpha);
+            SinTheta = Math.sin(alpha);
             
             //Joint positions:
             x3 = xA + H*SinTheta;
@@ -92,13 +89,14 @@ public class Arm{
             y4 = yA + H*CosTheta;
             
             //Choose the lower x value for left motor and calculate angle
-            if(x3<x4){leftMotorAngle = Math.atan2(ym1-y3,x3-xm1);}
-            else{leftMotorAngle = Math.atan2(ym1-y4,x4-xm1);}
+            if(x3<x4){rightMotorAngle = Math.PI - Math.atan2(ym1-y3, x3-xm1);}
+            else{rightMotorAngle = Math.PI - Math.atan2(ym1-y4,x4-xm1);}
             
             
             /** Motor 2**/
             //Distance betwee tool and motor:
             d= Math.sqrt( ((xT-xm2)*(xT-xm2)) + ((yT-ym2)*(yT-ym2)) );
+            alpha = Math.atan2(yT - ym2, xT - xm2);
             
             //Midpoint
             xA = (xT+xm2)/2;
@@ -108,8 +106,8 @@ public class Arm{
             H= Math.sqrt((R*R)-((d/2)*(d/2)));
             
             //Angles
-            CosTheta = Math.cos((xT-xm2)/d);
-            SinTheta = Math.sin((yT-ym2)/d);
+            CosTheta = Math.cos(alpha);
+            SinTheta = Math.sin(alpha);
             
             //Joint positions:
             x3 = xA + H*SinTheta;
@@ -118,8 +116,8 @@ public class Arm{
             y4 = yA + H*CosTheta;
             
             //Choose the higher x value for right motor and calculate angle
-            if(x3>x4){rightMotorAngle = Math.atan2(ym2-y3,xm2-x3);}
-            else{rightMotorAngle = Math.atan2(ym2-y4,xm2-x4);}
+            if(x3>x4){leftMotorAngle = Math.PI - Math.atan2(ym2-y3,x3 - xm2);}
+            else{leftMotorAngle = Math.PI - Math.atan2(ym2-y4,x4 - xm2);}
             
             writeMotorSignals(leftMotorAngle, rightMotorAngle, penAngle);
         }
@@ -163,8 +161,10 @@ public class Arm{
      */
     public void writeMotorSignals(double left, double right, double pen){       
         //Convert from radians to degrees
-        left = Math.abs(left * 180.0/Math.PI);
-        right = Math.abs(right * 180.0/Math.PI);
+        //left = Math.abs(left * 180.0/Math.PI);
+        //right = Math.abs(right * 180.0/Math.PI);
+        left = left * 180.0/Math.PI;
+        right = right * 180.0/Math.PI;
         Trace.println(left + "  " + right);     //Debugging purposes
         
         //Apply the straight line formula to calculate the motor signal
@@ -187,6 +187,8 @@ public class Arm{
     
     public static void main(String[] args){
         Arm obj = new Arm();
+        obj.initWriter();
+        obj.writeMotorSignals(Math.toRadians(135), Math.toRadians(27.9), 1500);
     }
 
 }

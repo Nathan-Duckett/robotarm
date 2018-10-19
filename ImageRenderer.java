@@ -30,7 +30,7 @@ public class ImageRenderer{
     private ArrayList <Integer> xCoord = new ArrayList <Integer> ();
     private ArrayList <Integer> yCoord = new ArrayList <Integer> (); 
     private ArrayList <Integer> pen = new ArrayList <Integer> (); 
-    
+
     private boolean follow = false;
     private int color;
     private int count;
@@ -38,7 +38,7 @@ public class ImageRenderer{
     public ImageRenderer(){
         //ImageRenderer ir = new ImageRenderer();
     }
-    
+
     /** 
      * Renders a ppm image file.
      * Asks for the name of the file, then calls scanImage.
@@ -51,7 +51,7 @@ public class ImageRenderer{
             this.scanImage(scan);
         } catch(IOException e) { UI.printf("File Failure %s \n", e); }
     }
-    
+
     /**
      * Take a fileName and perform the image scanning into the 
      */
@@ -72,7 +72,7 @@ public class ImageRenderer{
         int row = 0;
         int col = 0;
         if (!sc.hasNext()) return;
-        
+
         String format = sc.next();
         while(sc.hasNext()) {
             if (sc.hasNext("#")) {
@@ -97,9 +97,9 @@ public class ImageRenderer{
             rows = sc.nextInt();
         } catch(InputMismatchException e) { UI.println("Error: " + e); sc.nextLine(); };
 
-
         originalImage = new int [rows][cols];//Init
-        //xyCoordinates=new HashSet<double>[rows*cols][rows*cols];  //Init 
+        //xyCoordinates=new HashSet<double>[rows*cols][rows*cols];      //Init 
+
         if(format.equals("P3")) {
             row = 0;
             while(row < rows){
@@ -115,6 +115,24 @@ public class ImageRenderer{
                 row++;   
             }
         }
+
+        /*
+        if(format.equals("P3")) {
+        col = cols - 1;
+        while(col >= 0){
+        row = 0;
+        while(row < rows){
+        int r = sc.nextInt();  
+        int g = sc.nextInt();
+        int b = sc.nextInt(); 
+        int avg = (r+g+b)/3;                   
+        originalImage[row][col] = avg;                        
+        row++;
+        }
+        col--;   
+        }
+        }
+         */
         renderImage(row, col);
 
     }
@@ -216,7 +234,7 @@ public class ImageRenderer{
                 }
             }
         }
-        
+
         if(completed){
             for(int value : xCoord){
                 Trace.println("comp x: "+value);
@@ -243,19 +261,17 @@ public class ImageRenderer{
         count = -2;
         return count;
     }
-    
+
     public ArrayList<Integer> getX(){
         return xCoord;
     }
-    
+
     public ArrayList<Integer> getY(){
         return yCoord;
     }
-    
+
     public ArrayList<Integer> getPen(){
         return pen;
     }
-    
-    
-}
 
+}
